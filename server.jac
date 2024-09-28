@@ -3,14 +3,14 @@ import:py from mtllm.llms {OpenAI}
 import:jac from rag {RagEngine}
 
 
-
 glob llm = OpenAI(model_name='gpt-4o-mini');
 # glob llm = Ollama(model_name='llama3.1');
 glob rag_engine:RagEngine = RagEngine();
 
 enum ChatType {
     RAG : 'Need to use Retrievable information in specific documents to respond' = "RAG",
-    QA : 'Given context is enough for an answer' = "user_qa"
+    QA : 'Given context is enough for an answer' = "user_qa",
+    FA : 'The context is financial related' = "user_fa"
 }
 
 node Router {
@@ -41,6 +41,7 @@ walker infer {
             router_node = here ++> Router();
             router_node ++> RagChat();
             router_node ++> QAChat();
+            router_node ++> FAChat();
             visit router_node;
         }
     }
@@ -48,6 +49,44 @@ walker infer {
     can route with Router entry {
         classification = here.classify(message = self.message);
         visit [-->](`?Chat)(?chat_type==classification);
+    }
+}
+
+walker add_two_nums {
+    has num1: int;
+    has num2: int;
+
+    can add_nums with `root entry {
+        answer = num1 + num2;
+        report {"answer": answer};
+    }
+}
+
+walker stock_price_checker {
+    has ticker: str;
+    
+    can check_price with Router entry {
+        # Simulating stock price lookup, replace this with an actual API call ideally
+        stock_data = {
+            "AAPL": {"price": 150.25, "name": "Apple Inc.", "currency": "USD"},
+            "TSLA": {"price": 720.30, "name": "Tesla Inc.", "currency": "USD"},
+            "GOOGL": {"price": 2800.50, "name": "Alphabet Inc.", "currency": "USD"}
+        };
+
+        stock_info = stock_data.get(self.ticker.upper(), None);
+
+        if stock_info != None {
+            report {
+                "ticker": self.ticker,
+                "price": stock_info["price"],
+                "name": stock_info["name"],
+                "currency": stock_info["currency"]
+            };
+        } else {
+            report {
+                "error": f"Stock data for ticker '{self.ticker}' not found."
+            };
+        }
     }
 }
 
@@ -80,6 +119,19 @@ node QAChat :Chat: {
             agent_role:'role of the agent responding':str
                 ) -> 'response':str by llm();
         here.response = respond_with_llm(here.message, here.chat_history, agent_role="You are a conversation agent designed to help users with their queries");
+    }
+}
+
+node FAChat :Chat: {
+    has chat_type: ChatType = ChatType.FA;
+
+    can respond with infer entry {
+        can 'Respond to message using chat_history as context and agent_role as the goal of the agent'
+        respond_with_llm(   message:'current message':str,
+            chat_history: 'chat history':list[dict],
+            agent_role:'role of the agent responding':str
+                ) -> 'response':str by llm();
+        here.response = respond_with_llm(here.message, here.chat_history, agent_role="You are an expert financial advisor and stock trader who can help users with their finance related questions ");
     }
 }
 
