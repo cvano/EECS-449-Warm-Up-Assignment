@@ -6,7 +6,7 @@ Clay VanOphem
 Implemented two walkers: 
 - add_two_nums
     - Adds two numbers together
-    - ![Image of Walker Code](/img/walker_add.jpg?raw=true "Code")
+    - ![Image of Walker Code](/img/walker_two.jpg?raw=true "Code")
 - stock_price_checker
     - Returns mock stock price data
     - ![Image of Walker Code](/img/walker_stock.jpg?raw=true "Code")
