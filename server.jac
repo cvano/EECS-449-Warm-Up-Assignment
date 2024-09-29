@@ -1,8 +1,8 @@
 import:py from mtllm.llms {OpenAI}
-# import:py from mtllm.llms {Ollama}
+import:py from mtllm.llms {Ollama}
 import:jac from rag {RagEngine}
 
-
+# Select current LLM here
 glob llm = OpenAI(model_name='gpt-4o-mini');
 # glob llm = Ollama(model_name='llama3.1');
 glob rag_engine:RagEngine = RagEngine();
@@ -10,13 +10,15 @@ glob rag_engine:RagEngine = RagEngine();
 enum ChatType {
     RAG : 'Need to use Retrievable information in specific documents to respond' = "RAG",
     QA : 'Given context is enough for an answer' = "user_qa",
-    FA : 'The context is financial related' = "user_fa"
+    FA : 'Given context is related to personal finance or real estate' = "FAChat"
 }
 
 node Router {
     can 'route the query to the appropriate task type'
     classify(message:'query from the user to be routed.':str) -> ChatType by llm(method="Reason", temperature=0.0);
 }
+
+
 
 walker interact {
     has message: str;
@@ -40,14 +42,16 @@ walker infer {
         visit [-->](`?Router) else {
             router_node = here ++> Router();
             router_node ++> RagChat();
-            router_node ++> QAChat();
             router_node ++> FAChat();
+            router_node ++> QAChat();
             visit router_node;
         }
     }
 
     can route with Router entry {
         classification = here.classify(message = self.message);
+        print("Classification:", classification);
+        print("Chat nodes:", [-->](`?Chat));
         visit [-->](`?Chat)(?chat_type==classification);
     }
 }
@@ -131,7 +135,7 @@ node FAChat :Chat: {
             chat_history: 'chat history':list[dict],
             agent_role:'role of the agent responding':str
                 ) -> 'response':str by llm();
-        here.response = respond_with_llm(here.message, here.chat_history, agent_role="You are an expert financial advisor and stock trader who can help users with their finance related questions ");
+        here.response = respond_with_llm(here.message, here.chat_history, agent_role="You are a personal finance and real estate expert, always teach people to be frugal and rational with their finances. End every response with 'And that's what Dave Ramsey says.'");
     }
 }
 
