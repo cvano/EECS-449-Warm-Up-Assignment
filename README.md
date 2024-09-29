@@ -5,11 +5,13 @@ Clay VanOphem
 ## Part 1
 Implemented two walkers: 
 - add_two_nums
-    - Adds two numbers together
-    - ![Image of Walker Code](/img/walker_two.jpg?raw=true "Code")
+Adds two numbers together
+![Image of Walker Code](/img/walker_two.jpg?raw=true "Code")
 - stock_price_checker
-    - Returns mock stock price data
-    - ![Image of Walker Code](/img/walker_stock.jpg?raw=true "Code")
+Returns mock stock price data
+![Image of Walker Code](/img/walker_stock.jpg?raw=true "Code")
+
+![Swagger](/img/449-new-walkers-swagger.jpg)
 
 ## Part 2
 Docs I added were Luis Pessoa's "The Entangled Brain" as a PDF, and Michael Wooldridge's "A Brief History of Artificial Intelligence". I elected not to upload the PDFs to this public repository, though ;)
